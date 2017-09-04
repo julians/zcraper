@@ -18,8 +18,7 @@ DOWNLOAD_URL = "http://www.zeit.de"
 
 
 def get_article_data(unique_id):
-    r = requests.get(unique_id)
-    obj = untangle.parse(r.text)
+    obj = untangle.parse(unique_id)
     article = obj.article
     head = obj.article.head
     body = obj.article.body
