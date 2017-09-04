@@ -9,7 +9,7 @@ import json
 from bs4 import BeautifulSoup
 import arrow
 from peewee import *
-from models import Aufmacher, Author, Image
+from models import Aufmacher, Author, Image, TweetJob
 from config import db
 import untangle
 
@@ -23,10 +23,10 @@ def get_article_data(unique_id):
     head = obj.article.head
     body = obj.article.body
 
-    author_unique_id = head.author["href"]
-    author_name = head.author.display_name.cdata.strip()
-    author_image_id = head.author.image["base-id"].strip()
-    author_image_copyright = head.author.image.copyright.cdata.strip()
+    #author_unique_id = head.author["href"]
+    #author_name = head.author.display_name.cdata.strip()
+    #author_image_id = head.author.image["base-id"].strip()
+    #author_image_copyright = head.author.image.copyright.cdata.strip()
 
     supertitle = body.supertitle.cdata.strip()
     title = body.title.cdata.strip()
@@ -41,20 +41,20 @@ def get_article_data(unique_id):
         if attribute["name"] == "date_first_released":
             first_released = arrow.get(attribute.cdata).datetime
 
-    author = Author.get_or_create(
-        unique_id=author_unique_id,
-        defaults={
-            "name": author_name
-        })
-
-    if author[1]:
-        author_image = Image.get_or_create(
-            unique_id=author_image_id,
-            defaults={
-                "copyright": author_image_copyright
-            })
-        author[0].image = author_image[0]
-        author[0].save()
+    #author = Author.get_or_create(
+    #    unique_id=author_unique_id,
+    #    defaults={
+    #        "name": author_name
+    #    })
+#
+    #if author[1]:
+    #    author_image = Image.get_or_create(
+    #        unique_id=author_image_id,
+    #        defaults={
+    #            "copyright": author_image_copyright
+    #        })
+    #    author[0].image = author_image[0]
+    #    author[0].save()
 
     article_image = None
     if image_id and len(image_id):
@@ -71,8 +71,12 @@ def get_article_data(unique_id):
         title=title,
         subtitle=subtitle,
         first_released=first_released,
-        author=author[0],
+        #author=author[0],
         image=article_image)
+
+    tweet_job = TweetJob.create(
+        aufmacher=aufmacher)
+
 
     return aufmacher
 
@@ -87,16 +91,12 @@ def scrape():
 
 
     db.connect()
-    db.create_tables([Image, Author, Aufmacher], safe=True)
+    db.create_tables([Image, Author, Aufmacher, TweetJob], safe=True)
 
+    possible_duplicate = Aufmacher.select()\
+        .where(Aufmacher.unique_id == unique_id)\
 
-    latest_aufmacher_id = None
-    latest_aufmacher = Aufmacher.select().order_by(Aufmacher.created_at.desc()).limit(1)
-
-    if len(latest_aufmacher):
-        latest_aufmacher_id = latest_aufmacher[0].unique_id
-
-    if latest_aufmacher_id != unique_id:
+    if not len(possible_duplicate):
         aufmacher = get_article_data(unique_id)
 
 

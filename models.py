@@ -33,8 +33,16 @@ class Aufmacher(Model):
     subtitle = TextField()
     first_released = DateTimeField()
     created_at = DateTimeField(default=datetime.datetime.now)
-    author = ForeignKeyField(Author)
+    author = ForeignKeyField(Author, null = True)
     image = ForeignKeyField(Image, null = True)
+
+    class Meta:
+        database = db
+
+
+class TweetJob(Model):
+    aufmacher = ForeignKeyField(Aufmacher)
+    tweeted_at = DateTimeField(null = True)
 
     class Meta:
         database = db
