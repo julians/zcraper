@@ -21,8 +21,8 @@ def tweet(tweetjob):
 {subtitle}
     """.format(**model_to_dict(tweetjob.aufmacher)).strip()
 
-    if len(tweet_text) > 115:
-        tweet_text = "{:.115}…".format(tweet_text)
+    if len(tweet_text) > 250:
+        tweet_text = "{:.250}…".format(tweet_text)
 
     tweet = """
 {tweet_text}
