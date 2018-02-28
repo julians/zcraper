@@ -86,8 +86,17 @@ def scrape():
     r = requests.get(DOWNLOAD_URL)
     soup = BeautifulSoup(r.text, "html.parser")
 
-    teaser = soup.select(".teaser-fullwidth")[0]
+    teaser = soup.select(".teaser-fullwidth")
+    if not len(teaser):
+        teaser = soup.select(".teaser-classic")
+
+    if len(teaser):
+        teaser = teaser[0]
+    else:
+        return
+
     unique_id = teaser["data-unique-id"].strip()
+    print(unique_id)
 
 
     db.connect()
