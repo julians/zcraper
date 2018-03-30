@@ -19,9 +19,14 @@ DOWNLOAD_URL = "http://www.zeit.de"
 
 def get_article_data(unique_id):
     obj = untangle.parse(unique_id)
-    article = obj.article
-    head = obj.article.head
-    body = obj.article.body
+
+    try:
+        article = obj.article
+    except AttributeError:
+        article = obj.link
+
+    head = article.head
+    body = article.body
 
     #author_unique_id = head.author["href"]
     #author_name = head.author.display_name.cdata.strip()
@@ -96,7 +101,6 @@ def scrape():
         return
 
     unique_id = teaser["data-unique-id"].strip()
-    print(unique_id)
 
 
     db.connect()
