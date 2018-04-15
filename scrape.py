@@ -37,9 +37,12 @@ def get_article_data(unique_id):
     title = body.title.cdata.strip()
     subtitle = body.subtitle.cdata.strip()
 
-    image_id = head.image["base-id"].strip()
-    image_copyright = head.image.copyright.cdata.strip()
-    image_caption = head.image.bu.cdata.strip()
+    try:
+        image_id = head.image["base-id"].strip()
+        image_copyright = head.image.copyright.cdata.strip()
+        image_caption = head.image.bu.cdata.strip()
+    except AttributeError:
+        image_id = None
 
     first_released = None
     for attribute in head.attribute:
