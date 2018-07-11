@@ -9,4 +9,4 @@ Scrapes ZON
 # Run
 
 1. `source venv/bin/activate`
-2. `python scraper.py`
+2. `python scrape.py`

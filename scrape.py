@@ -103,7 +103,7 @@ def scrape():
     else:
         return
 
-    unique_id = teaser["data-unique-id"].strip()
+    unique_id = teaser["data-unique-id"].strip().replace("https", "http")
 
 
     db.connect()
