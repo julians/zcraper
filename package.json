@@ -1,0 +1,23 @@
+{
+  "name": "zcraper",
+  "version": "1.0.0",
+  "description": "scrapes ZON, tweets and mails",
+  "main": "index.js",
+  "dependencies": {
+    "mjml": "^4.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julians/zcraper.git"
+  },
+  "author": "Julian Stahnke",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/julians/zcraper/issues"
+  },
+  "homepage": "https://github.com/julians/zcraper#readme"
+}

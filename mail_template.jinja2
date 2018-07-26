@@ -1,11 +1,10 @@
 <mjml>
     <mj-head>
-        <mjml-title>Aufmacher zum {{ date }}</mjml-title>
-        <mjml-preview>Hello</mjml-preview>
+        <mj-title>{{ subject }}</mj-title>
+        <mj-preview>Aufmacher für den {{ date_string }}</mj-preview>
         <mj-attributes>
             <mj-all
                 font-family="-apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-                line-height="1.2"
             />
             <mj-text
                 padding="0"
@@ -39,6 +38,7 @@
                             color="#77777C"
                             font-size="9px"
                             padding-bottom="10px"
+                            line-height="12px"
                         >
                             {{ item.image.copyright }}
                         </mj-text>
@@ -56,12 +56,13 @@
                         padding-bottom="5px"
                         font-size="24px"
                         font-weight="bold"
+                        line-height="30px"
                     >
-                        <a href="{{ item.get_url() }}" class="link-nostyle">{{ item.supertitle }}</a>
+                        <a href="{{ item.get_url() }}" class="link-nostyle">{{ item.title }}</a>
                     </mj-text>
                     <mj-text
                         font-size="16px"
-                        line-height="1.5"
+                        line-height="21px"
                     >
                         {{ item.subtitle }}
                     </mj-text>
