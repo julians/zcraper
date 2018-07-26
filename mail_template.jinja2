@@ -1,0 +1,72 @@
+<mjml>
+    <mj-head>
+        <mjml-title>Aufmacher zum {{ date }}</mjml-title>
+        <mjml-preview>Hello</mjml-preview>
+        <mj-attributes>
+            <mj-all
+                font-family="-apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+                line-height="1.2"
+            />
+            <mj-text
+                padding="0"
+            />
+            <mj-column
+                padding="0 10px"
+            />
+        </mj-attributes>
+        <mj-style inline="inline">
+            .link-nostyle { color: inherit; text-decoration: none }
+        </mj-style>
+    </mj-head>
+    <mj-body>
+        <mj-section>
+            <mj-column>
+                <mj-text><h2>Aufmacher</h2></mj-text>
+            </mj-column>
+        </mj-section>
+        {% for item in aufmacher %}
+            <mj-section
+                padding="20px 0"
+            >
+                {% if item.image %}
+                    <mj-column>
+                        <mj-image
+                            src="{{ item.get_mail_teaser_image() }}"
+                            align="left"
+                            padding="0 0 5px 0"
+                        />
+                        <mj-text
+                            color="#77777C"
+                            font-size="9px"
+                            padding-bottom="10px"
+                        >
+                            {{ item.image.copyright }}
+                        </mj-text>
+                    </mj-column>
+                {% endif %}
+                <mj-column>
+                    <mj-text
+                        font-size="13px"
+                        font-weight="bold"
+                        color="#b91109"
+                    >
+                        <a href="{{ item.get_url() }}" class="link-nostyle">{{ item.supertitle }}</a>
+                    </mj-text>
+                    <mj-text
+                        padding-bottom="5px"
+                        font-size="24px"
+                        font-weight="bold"
+                    >
+                        <a href="{{ item.get_url() }}" class="link-nostyle">{{ item.supertitle }}</a>
+                    </mj-text>
+                    <mj-text
+                        font-size="16px"
+                        line-height="1.5"
+                    >
+                        {{ item.subtitle }}
+                    </mj-text>
+                </mj-column>
+            </mj-section>
+        {% endfor %}
+    </mj-body>
+</mjml>
