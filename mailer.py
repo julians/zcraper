@@ -90,7 +90,7 @@ def go():
             "content": [
                 {
                     "type": "text/plain",
-                    "value": "and easy to do anywhere, even with Python"
+                    "value": mail_text
                 },
                 {
                     "type": "text/html",
