@@ -9,7 +9,7 @@ import json
 from bs4 import BeautifulSoup
 import arrow
 from peewee import *
-from models import Aufmacher, Author, Image, TweetJob
+from models import Aufmacher, Author, Image, TweetJob, AufmacherAuthor
 from config import db
 import untangle
 
@@ -17,8 +17,62 @@ import untangle
 DOWNLOAD_URL = "http://www.zeit.de"
 
 
+def get_author_data(unique_id=None, article=None):
+    if not article:
+        obj = untangle.parse(
+            "http://xml.zeit.de/gesellschaft/2018-07/flucht-migration-mittelmeer-syrien-deutschland"
+        )
+
+        try:
+            article = obj.article
+        except AttributeError:
+            article = obj.link
+
+    head = article.head
+
+    authors = head.author
+    print(len(authors))
+    saved_authors = []
+
+    for author in authors:
+        author_name = author.display_name.cdata.strip()
+        author_unique_id = author["href"]
+
+        print(author_name)
+
+        saved_author, author_created = Author.get_or_create(
+            unique_id=author_unique_id, defaults={"name": author_name}
+        )
+
+        if saved_author:
+            try:
+                author_image_id = author.image["base-id"].strip()
+            except AttributeError:
+                author_image_id = None
+
+            if author_image_id:
+                print(author_image_id)
+                author_image_copyright = author.image.copyright.cdata.strip()
+
+                author_image, image_created = Image.get_or_create(
+                    unique_id=author_image_id,
+                    defaults={"copyright": author_image_copyright},
+                )
+
+                if image_created:
+                    saved_author.image = author_image
+                    saved_author.save()
+
+        saved_authors.append(saved_author)
+
+    return saved_authors
+
+
 def get_article_data(unique_id):
     obj = untangle.parse(unique_id)
+    # obj = untangle.parse(
+    #     "http://xml.zeit.de/gesellschaft/2018-07/flucht-migration-mittelmeer-syrien-deutschland"
+    # )
 
     try:
         article = obj.article
@@ -27,11 +81,6 @@ def get_article_data(unique_id):
 
     head = article.head
     body = article.body
-
-    #author_unique_id = head.author["href"]
-    #author_name = head.author.display_name.cdata.strip()
-    #author_image_id = head.author.image["base-id"].strip()
-    #author_image_copyright = head.author.image.copyright.cdata.strip()
 
     supertitle = body.supertitle.cdata.strip()
     title = body.title.cdata.strip()
@@ -49,29 +98,12 @@ def get_article_data(unique_id):
         if attribute["name"] == "date_first_released":
             first_released = arrow.get(attribute.cdata).datetime
 
-    #author = Author.get_or_create(
-    #    unique_id=author_unique_id,
-    #    defaults={
-    #        "name": author_name
-    #    })
-#
-    #if author[1]:
-    #    author_image = Image.get_or_create(
-    #        unique_id=author_image_id,
-    #        defaults={
-    #            "copyright": author_image_copyright
-    #        })
-    #    author[0].image = author_image[0]
-    #    author[0].save()
-
     article_image = None
     if image_id and len(image_id):
         article_image = Image.get_or_create(
             unique_id=image_id,
-            defaults={
-                "copyright": image_copyright,
-                "caption": image_caption
-            })[0]
+            defaults={"copyright": image_copyright, "caption": image_caption},
+        )[0]
 
     aufmacher = Aufmacher.create(
         unique_id=unique_id,
@@ -79,15 +111,17 @@ def get_article_data(unique_id):
         title=title,
         subtitle=subtitle,
         first_released=first_released,
-        #author=author[0],
-        image=article_image)
+        image=article_image,
+    )
 
-    tweet_job = TweetJob.create(
-        aufmacher=aufmacher)
+    TweetJob.create(aufmacher=aufmacher)
 
+    authors = get_author_data(article)
+    if len(authors):
+        for author in authors:
+            AufmacherAuthor.create(aufmacher=aufmacher, author=author)
 
     return aufmacher
-
 
 
 def scrape():
@@ -103,18 +137,16 @@ def scrape():
     else:
         return
 
-    unique_id = teaser["data-unique-id"].strip().replace("https", "http")
+    # unique_id = teaser["data-unique-id"].strip().replace("https", "http")
 
+    unique_id = "http://xml.zeit.de/gesellschaft/2018-07/flucht-migration-mittelmeer-syrien-deutschland"
 
     db.connect()
-    db.create_tables([Image, Author, Aufmacher, TweetJob], safe=True)
+    db.create_tables([Image, Author, Aufmacher, TweetJob, AufmacherAuthor], safe=True)
 
-    possible_duplicate = Aufmacher.select()\
-        .where(Aufmacher.unique_id == unique_id)\
-
-    if not len(possible_duplicate):
+    possible_duplicate = Aufmacher.select().where(Aufmacher.unique_id == unique_id)
+    if True or not len(possible_duplicate):
         aufmacher = get_article_data(unique_id)
-
 
     db.close()
 
