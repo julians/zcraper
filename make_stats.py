@@ -64,6 +64,9 @@ def get_article_data(aufmacher, article_xml, next_aufmacher):
             except Exception:
                 text_length = None
 
+    teaser_super_title = article_xml.teaser.supertitle.cdata.strip()
+    teaser_title = article_xml.teaser.title.cdata.strip()
+
     return {
         "url": aufmacher.unique_id,
         "tags": ",".join([x["name"] for x in tags]),
@@ -79,6 +82,11 @@ def get_article_data(aufmacher, article_xml, next_aufmacher):
         "exclamationMarkInTitle": "?" in aufmacher.title,
         "numberOfQuotationMarksInTitle": aufmacher.title.count('"'),
         "secondsAsAufmacher": delta,
+        "teaserSuperTitle": teaser_super_title,
+        "teaserTitle": teaser_title,
+        "questionMarkInTeaserTitle": "?" in teaser_title,
+        "exclamationMarkInTeaserTitle": "?" in teaser_title,
+        "numberOfQuotationMarksInTeaserTitle": teaser_title.count('"'),
     }
 
 
