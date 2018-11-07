@@ -30,12 +30,7 @@ def download_article(unique_id):
 
 def download():
     db.connect()
-
     aufmacher = Aufmacher.select()
-    # .where(
-    #     Aufmacher.unique_id
-    #     == "http://xml.zeit.de/politik/ausland/2018-03/sergej-skripal-grossbritannien-russland-nationaler-sicherheitsrat-sanktionen"
-    # )
     aufmacher_length = len(aufmacher)
 
     for index, auf in enumerate(aufmacher):

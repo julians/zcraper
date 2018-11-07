@@ -6,6 +6,7 @@ import csv
 from pathlib import Path
 import arrow
 from collections import defaultdict
+from operator import itemgetter
 
 dumb_tag_list = []
 all_tags = {}
@@ -22,7 +23,7 @@ def get_tags(article_xml):
     saved_tags = []
     for tag in tags.tag:
         tag_name = tag.cdata.strip()
-        tag_type = tag["type"]
+        tag_type = tag["type"].lower()
 
         saved_tags.append({"name": tag_name, "type": tag_type})
 
@@ -37,12 +38,17 @@ def get_tags(article_xml):
     return saved_tags
 
 
-def get_article_data(aufmacher, article_xml):
+def get_article_data(aufmacher, article_xml, next_aufmacher):
     tags = get_tags(article_xml)
 
     created = arrow.get(aufmacher.created_at)
     release_date = created.format("YYYY-MM-DD")
     release_time = created.format("HH-mm-ss")
+
+    delta = None
+    if next_aufmacher:
+        next_created = arrow.get(next_aufmacher.created_at).datetime
+        delta = (next_created - created.datetime).seconds
 
     url_parts = aufmacher.unique_id.replace("http://xml.zeit.de/", "").split("/")
 
@@ -72,6 +78,7 @@ def get_article_data(aufmacher, article_xml):
         "questionMarkInTitle": "?" in aufmacher.title,
         "exclamationMarkInTitle": "?" in aufmacher.title,
         "numberOfQuotationMarksInTitle": aufmacher.title.count('"'),
+        "secondsAsAufmacher": delta,
     }
 
 
@@ -93,17 +100,23 @@ def make_stats():
     print("{} Aufmacher an {} Tagen".format(len(aufmacher), number_of_days))
     print(len(aufmacher) / number_of_days, " Aufmacher pro Tag")
 
-    for auf in aufmacher:
+    for index, auf in enumerate(aufmacher):
         path_to_file = auf.unique_id.replace("http://xml.zeit.de/", "")
         xml_file_path = (Path("xml") / path_to_file).with_suffix(".xml")
+
+        next_aufmacher = aufmacher[index + 1] if index < len(aufmacher) - 1 else None
 
         if xml_file_path.is_file():
             with open(xml_file_path, "r") as xml_file:
                 parsed_article = untangle.parse(xml_file)
-                article_data = get_article_data(auf, parsed_article.article)
+                article_data = get_article_data(
+                    auf, parsed_article.article, next_aufmacher
+                )
 
                 if article_data:
                     csv_data.append(article_data)
+
+        previous_aufmacher = auf
 
     with open("stats/aufmacher.csv", "w") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=csv_data[0].keys())
@@ -113,7 +126,9 @@ def make_stats():
     with open("stats/tags.csv", "w") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=list(all_tags.values())[0].keys())
         writer.writeheader()
-        writer.writerows(all_tags.values())
+        writer.writerows(
+            sorted(list(all_tags.values()), key=itemgetter("count"), reverse=True)
+        )
 
     with open("stats/tagcloud.txt", "w") as out_file:
         out_file.write("\n".join(dumb_tag_list))
