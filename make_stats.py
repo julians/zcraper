@@ -10,6 +10,7 @@ from operator import itemgetter
 
 dumb_tag_list = []
 all_tags = {}
+teaser_texts = []
 
 
 def get_tags(article_xml):
@@ -66,6 +67,12 @@ def get_article_data(aufmacher, article_xml, next_aufmacher):
 
     teaser_super_title = article_xml.teaser.supertitle.cdata.strip()
     teaser_title = article_xml.teaser.title.cdata.strip()
+    teaser_text = article_xml.teaser.text.cdata.strip()
+
+    teaser_texts.append({
+        "teaserText": teaser_text,
+        "url": aufmacher.unique_id,
+    })
 
     return {
         "url": aufmacher.unique_id,
@@ -124,8 +131,6 @@ def make_stats():
                 if article_data:
                     csv_data.append(article_data)
 
-        previous_aufmacher = auf
-
     with open("stats/aufmacher.csv", "w") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=csv_data[0].keys())
         writer.writeheader()
@@ -140,6 +145,39 @@ def make_stats():
 
     with open("stats/tagcloud.txt", "w") as out_file:
         out_file.write("\n".join(dumb_tag_list))
+
+    headlines_with_shitlist_words = []
+    teasers_with_shitlist_words = []
+    with open("shitlist.txt", "r") as shitlist_file:
+        shitlist = [line.rstrip("\n").lower() for line in shitlist_file]
+        print(shitlist)
+
+        for auf in csv_data:
+            if any([word in auf["teaserTitle"].lower() for word in shitlist]):
+                headlines_with_shitlist_words.append({
+                    "teaserTitle": auf["teaserTitle"],
+                    "url": auf["url"],
+                })
+        
+        for auf in teaser_texts:
+            if any([word in auf["teaserText"].lower() for word in shitlist]):
+                teasers_with_shitlist_words.append({
+                    "teaserText": auf["teaserText"],
+                    "url": auf["url"],
+                    "words": ", ".join([word for word in shitlist if word in auf["teaserText"].lower()])
+                })
+
+    if len(headlines_with_shitlist_words):
+        with open("stats/shitlisted_headlines.csv", "w") as out_file:
+            writer = csv.DictWriter(out_file, fieldnames=headlines_with_shitlist_words[0].keys())
+            writer.writeheader()
+            writer.writerows(headlines_with_shitlist_words)
+
+    if len(teasers_with_shitlist_words):
+        with open("stats/shitlisted_teasers.csv", "w") as out_file:
+            writer = csv.DictWriter(out_file, fieldnames=teasers_with_shitlist_words[0].keys())
+            writer.writeheader()
+            writer.writerows(teasers_with_shitlist_words)
 
 
 if __name__ == "__main__":
