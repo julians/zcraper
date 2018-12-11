@@ -23,15 +23,18 @@ def get_article_data(unique_id):
     try:
         article = obj.article
     except AttributeError:
-        article = obj.link
+        try:
+            article = obj.link
+        except AttributeError:
+            article = obj.gallery
 
     head = article.head
     body = article.body
 
-    #author_unique_id = head.author["href"]
-    #author_name = head.author.display_name.cdata.strip()
-    #author_image_id = head.author.image["base-id"].strip()
-    #author_image_copyright = head.author.image.copyright.cdata.strip()
+    # author_unique_id = head.author["href"]
+    # author_name = head.author.display_name.cdata.strip()
+    # author_image_id = head.author.image["base-id"].strip()
+    # author_image_copyright = head.author.image.copyright.cdata.strip()
 
     supertitle = body.supertitle.cdata.strip()
     title = body.title.cdata.strip()
@@ -49,13 +52,13 @@ def get_article_data(unique_id):
         if attribute["name"] == "date_first_released":
             first_released = arrow.get(attribute.cdata).datetime
 
-    #author = Author.get_or_create(
+    # author = Author.get_or_create(
     #    unique_id=author_unique_id,
     #    defaults={
     #        "name": author_name
     #    })
-#
-    #if author[1]:
+    #
+    # if author[1]:
     #    author_image = Image.get_or_create(
     #        unique_id=author_image_id,
     #        defaults={
@@ -68,10 +71,8 @@ def get_article_data(unique_id):
     if image_id and len(image_id):
         article_image = Image.get_or_create(
             unique_id=image_id,
-            defaults={
-                "copyright": image_copyright,
-                "caption": image_caption
-            })[0]
+            defaults={"copyright": image_copyright, "caption": image_caption},
+        )[0]
 
     aufmacher = Aufmacher.create(
         unique_id=unique_id,
@@ -79,15 +80,13 @@ def get_article_data(unique_id):
         title=title,
         subtitle=subtitle,
         first_released=first_released,
-        #author=author[0],
-        image=article_image)
+        # author=author[0],
+        image=article_image,
+    )
 
-    tweet_job = TweetJob.create(
-        aufmacher=aufmacher)
-
+    tweet_job = TweetJob.create(aufmacher=aufmacher)
 
     return aufmacher
-
 
 
 def scrape():
@@ -105,16 +104,12 @@ def scrape():
 
     unique_id = teaser["data-unique-id"].strip().replace("https", "http")
 
-
     db.connect()
     db.create_tables([Image, Author, Aufmacher, TweetJob], safe=True)
 
-    possible_duplicate = Aufmacher.select()\
-        .where(Aufmacher.unique_id == unique_id)\
-
+    possible_duplicate = Aufmacher.select().where(Aufmacher.unique_id == unique_id)
     if not len(possible_duplicate):
         aufmacher = get_article_data(unique_id)
-
 
     db.close()
 
