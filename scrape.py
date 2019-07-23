@@ -84,7 +84,7 @@ def get_article_data(unique_id):
         image=article_image,
     )
 
-    tweet_job = TweetJob.create(aufmacher=aufmacher)
+    TweetJob.create(aufmacher=aufmacher)
 
     return aufmacher
 
@@ -93,9 +93,7 @@ def scrape():
     r = requests.get(DOWNLOAD_URL)
     soup = BeautifulSoup(r.text, "html.parser")
 
-    teaser = soup.select(".teaser-fullwidth")
-    if not len(teaser):
-        teaser = soup.select(".teaser-classic")
+    teaser = soup.select(".main article")
 
     if len(teaser):
         teaser = teaser[0]
@@ -109,7 +107,7 @@ def scrape():
 
     possible_duplicate = Aufmacher.select().where(Aufmacher.unique_id == unique_id)
     if not len(possible_duplicate):
-        aufmacher = get_article_data(unique_id)
+        get_article_data(unique_id)
 
     db.close()
 
