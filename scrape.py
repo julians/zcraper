@@ -37,7 +37,10 @@ def get_article_data(unique_id):
     # author_image_copyright = head.author.image.copyright.cdata.strip()
 
     supertitle = body.supertitle.cdata.strip()
-    title = body.title.cdata.strip()
+    title = body.title
+    if isinstance(title, list):
+        title = title[0]
+    title = title.cdata.strip()
     subtitle = body.subtitle.cdata.strip()
 
     try:
