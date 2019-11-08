@@ -26,7 +26,10 @@ def get_article_data(unique_id):
         try:
             article = obj.link
         except AttributeError:
-            article = obj.gallery
+            try:
+                article = obj.gallery
+            except AttributeError:
+                article = obj.video
 
     head = article.head
     body = article.body
