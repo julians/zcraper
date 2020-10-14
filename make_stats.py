@@ -69,10 +69,7 @@ def get_article_data(aufmacher, article_xml, next_aufmacher):
     teaser_title = article_xml.teaser.title.cdata.strip()
     teaser_text = article_xml.teaser.text.cdata.strip()
 
-    teaser_texts.append({
-        "teaserText": teaser_text,
-        "url": aufmacher.unique_id,
-    })
+    teaser_texts.append({"teaserText": teaser_text, "url": aufmacher.unique_id})
 
     return {
         "url": aufmacher.unique_id,
@@ -98,8 +95,8 @@ def get_article_data(aufmacher, article_xml, next_aufmacher):
 
 
 def make_stats():
-    start_date = arrow.get("2017-11-06", "YYYY-MM-DD").datetime
-    end_date = arrow.get("2018-11-05", "YYYY-MM-DD").datetime
+    start_date = arrow.get("2019-10-14", "YYYY-MM-DD").datetime
+    end_date = arrow.get("2020-10-14", "YYYY-MM-DD").datetime
     number_of_days = (end_date - start_date).days
 
     db.connect()
@@ -124,6 +121,7 @@ def make_stats():
         if xml_file_path.is_file():
             with open(xml_file_path, "r") as xml_file:
                 parsed_article = untangle.parse(xml_file)
+                print(xml_file_path)
                 article_data = get_article_data(
                     auf, parsed_article.article, next_aufmacher
                 )
@@ -154,28 +152,39 @@ def make_stats():
 
         for auf in csv_data:
             if any([word in auf["teaserTitle"].lower() for word in shitlist]):
-                headlines_with_shitlist_words.append({
-                    "teaserTitle": auf["teaserTitle"],
-                    "url": auf["url"],
-                })
-        
+                headlines_with_shitlist_words.append(
+                    {"teaserTitle": auf["teaserTitle"], "url": auf["url"]}
+                )
+
         for auf in teaser_texts:
             if any([word in auf["teaserText"].lower() for word in shitlist]):
-                teasers_with_shitlist_words.append({
-                    "teaserText": auf["teaserText"],
-                    "url": auf["url"],
-                    "words": ", ".join([word for word in shitlist if word in auf["teaserText"].lower()])
-                })
+                teasers_with_shitlist_words.append(
+                    {
+                        "teaserText": auf["teaserText"],
+                        "url": auf["url"],
+                        "words": ", ".join(
+                            [
+                                word
+                                for word in shitlist
+                                if word in auf["teaserText"].lower()
+                            ]
+                        ),
+                    }
+                )
 
     if len(headlines_with_shitlist_words):
         with open("stats/shitlisted_headlines.csv", "w") as out_file:
-            writer = csv.DictWriter(out_file, fieldnames=headlines_with_shitlist_words[0].keys())
+            writer = csv.DictWriter(
+                out_file, fieldnames=headlines_with_shitlist_words[0].keys()
+            )
             writer.writeheader()
             writer.writerows(headlines_with_shitlist_words)
 
     if len(teasers_with_shitlist_words):
         with open("stats/shitlisted_teasers.csv", "w") as out_file:
-            writer = csv.DictWriter(out_file, fieldnames=teasers_with_shitlist_words[0].keys())
+            writer = csv.DictWriter(
+                out_file, fieldnames=teasers_with_shitlist_words[0].keys()
+            )
             writer.writeheader()
             writer.writerows(teasers_with_shitlist_words)
 
