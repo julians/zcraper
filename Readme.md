@@ -10,3 +10,9 @@ Scrapes ZON
 
 1. `source venv/bin/activate`
 2. `python scrape.py`
+
+# To generate stats about scraped aufmachers
+
+1. `source venv/bin/activate`
+2. `python download_xml.py`
+3. `python make_stats.py`

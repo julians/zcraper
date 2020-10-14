@@ -122,12 +122,14 @@ def make_stats():
             with open(xml_file_path, "r") as xml_file:
                 parsed_article = untangle.parse(xml_file)
                 print(xml_file_path)
-                article_data = get_article_data(
-                    auf, parsed_article.article, next_aufmacher
-                )
-
-                if article_data:
-                    csv_data.append(article_data)
+                try:
+                    article_data = get_article_data(
+                        auf, parsed_article.article, next_aufmacher
+                    )
+                    if article_data:
+                        csv_data.append(article_data)
+                except AttributeError:
+                    continue
 
     with open("stats/aufmacher.csv", "w") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=csv_data[0].keys())
